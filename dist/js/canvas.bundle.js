@@ -98,75 +98,97 @@
 
 var _utils = __webpack_require__(/*! ./utils */ "./src/js/utils.js");
 
-var _utils2 = _interopRequireDefault(_utils);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-var canvas = document.querySelector('canvas');
-var c = canvas.getContext('2d');
+var canvas = document.querySelector("canvas");
+var c = canvas.getContext("2d");
 
 canvas.width = innerWidth;
 canvas.height = innerHeight;
 
 var mouse = {
-    x: innerWidth / 2,
-    y: innerHeight / 2
+  x: innerWidth / 2,
+  y: innerHeight / 2
 };
 
-var colors = ['#2185C5', '#7ECEFD', '#FFF6E5', '#FF7F66'];
+var colors = ["#D4EDFF", "#0C92FA", "#043098", "#140545"];
 
 // Event Listeners
-addEventListener('mousemove', function (event) {
-    mouse.x = event.clientX;
-    mouse.y = event.clientY;
+addEventListener("mousemove", function (event) {
+  mouse.x = event.clientX;
+  mouse.y = event.clientY;
 });
 
-addEventListener('resize', function () {
-    canvas.width = innerWidth;
-    canvas.height = innerHeight;
+addEventListener("resize", function () {
+  canvas.width = innerWidth;
+  canvas.height = innerHeight;
 
-    init();
+  init();
 });
 
-// Objects
-function Object(x, y, radius, color) {
-    this.x = x;
-    this.y = y;
-    this.radius = radius;
-    this.color = color;
+// Particles
+function Particle(x, y, radius, color) {
+  var _this = this;
+
+  this.x = x;
+  this.y = y;
+  this.radius = radius;
+  this.color = color;
+  this.radians = Math.random() * Math.PI * 2;
+  this.velocity = 0.05;
+  this.distanceFromCenter = (0, _utils.randomIntFromRange)(80, 120);
+  this.lastMouse = { x: x, y: y };
+
+  this.draw = function (_ref) {
+    var x = _ref.x,
+        y = _ref.y;
+
+    c.beginPath();
+    c.moveTo(x, y);
+    c.lineTo(_this.x, _this.y);
+    c.strokeStyle = _this.color;
+    c.lineWidth = _this.radius;
+    c.stroke();
+    c.closePath();
+  };
+
+  this.update = function (particles) {
+    var lastCord = {
+      x: _this.x,
+      y: _this.y
+
+      //Drag effect
+    };_this.lastMouse.x += (mouse.x - _this.lastMouse.x) * 0.05;
+    _this.lastMouse.y += (mouse.y - _this.lastMouse.y) * 0.05;
+
+    //Circular moution
+    _this.x = _this.lastMouse.x + Math.sin(_this.radians) * _this.distanceFromCenter;
+    _this.y = _this.lastMouse.y + Math.cos(_this.radians) * _this.distanceFromCenter;
+    _this.radians += _this.velocity;
+
+    _this.draw(lastCord);
+  };
 }
 
-Object.prototype.draw = function () {
-    c.beginPath();
-    c.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
-    c.fillStyle = this.color;
-    c.fill();
-    c.closePath();
-};
-
-Object.prototype.update = function () {
-    this.draw();
-};
-
 // Implementation
-var objects = void 0;
+var particles = void 0;
 function init() {
-    objects = [];
+  particles = Array(50).fill("").map(function (item, i) {
+    var defaultRadius = (0, _utils.randomIntFromRange)(2, 5);
+    var x = innerWidth / 2;
+    var y = innerHeight / 2;
 
-    for (var i = 0; i < 400; i++) {
-        // objects.push()
-    }
+    return new Particle(x, y, defaultRadius, colors[(0, _utils.randomIntFromRange)(0, colors.length - 1)]);
+  });
 }
 
 // Animation Loop
 function animate() {
-    requestAnimationFrame(animate);
-    c.clearRect(0, 0, canvas.width, canvas.height);
-
-    c.fillText('HTML CANVAS BOILERPLATE', mouse.x, mouse.y);
-    // objects.forEach(object => {
-    //  object.update()
-    // })
+  requestAnimationFrame(animate);
+  c.fillStyle = 'rgba(255, 255, 255, 0.05)';
+  // c.clearRect(0, 0, canvas.width, canvas.height)
+  c.fillRect(0, 0, canvas.width, canvas.height);
+  particles.forEach(function (element, i, self) {
+    element.update(self);
+  });
 }
 
 init();
